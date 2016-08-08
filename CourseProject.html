@@ -173,7 +173,7 @@ dim(ptrain)</code></pre>
 </div>
 <div id="modeling" class="section level2">
 <h2>Modeling</h2>
-<p>Use the following modeling functions:</p>
+<p>Test the following modeling functions to identify best solution:</p>
 <ol style="list-style-type: decimal">
 <li>Model with a decision tree (RPART)</li>
 <li>Model with random forest (RF)</li>
@@ -210,8 +210,31 @@ modFitRF &lt;- train(classe~., data=ptrain, method='rf')</code></pre>
 <h2>Model Evaluation</h2>
 <p>Now predict each model on the validation set to allow us to re-train the models if necessary before the final test on the test set.</p>
 <pre class="r"><code>predTree &lt;- predict(modFitTree, newdata = ptest)
-predRF &lt;- predict(modFitRF, newdata = ptest)
-predGBM &lt;- predict(modFitGBM, newdata = ptest)</code></pre>
+predRF &lt;- predict(modFitRF, newdata = ptest)</code></pre>
+<pre><code>## Loading required package: randomForest</code></pre>
+<pre><code>## Warning: package 'randomForest' was built under R version 3.2.5</code></pre>
+<pre><code>## randomForest 4.6-12</code></pre>
+<pre><code>## Type rfNews() to see new features/changes/bug fixes.</code></pre>
+<pre><code>## 
+## Attaching package: 'randomForest'</code></pre>
+<pre><code>## The following object is masked from 'package:ggplot2':
+## 
+##     margin</code></pre>
+<pre class="r"><code>predGBM &lt;- predict(modFitGBM, newdata = ptest)</code></pre>
+<pre><code>## Loading required package: gbm</code></pre>
+<pre><code>## Warning: package 'gbm' was built under R version 3.2.5</code></pre>
+<pre><code>## Loading required package: survival</code></pre>
+<pre><code>## Warning: package 'survival' was built under R version 3.2.5</code></pre>
+<pre><code>## 
+## Attaching package: 'survival'</code></pre>
+<pre><code>## The following object is masked from 'package:caret':
+## 
+##     cluster</code></pre>
+<pre><code>## Loading required package: splines</code></pre>
+<pre><code>## Loading required package: parallel</code></pre>
+<pre><code>## Loaded gbm 2.1.1</code></pre>
+<pre><code>## Loading required package: plyr</code></pre>
+<pre><code>## Warning: package 'plyr' was built under R version 3.2.5</code></pre>
 <div id="results-for-decision-tree" class="section level3">
 <h3>results for decision tree</h3>
 <pre class="r"><code>confusionMatrix(ptest$classe, predTree)</code></pre>
@@ -318,9 +341,9 @@ predGBM &lt;- predict(modFitGBM, newdata = ptest)</code></pre>
 ## Balanced Accuracy      0.9917   0.9889   0.9857   0.9922   0.9988</code></pre>
 </div>
 </div>
-<div id="re-train-model" class="section level2">
-<h2>Re-train Model</h2>
-<p>because the Random Forest produced a result with 99.7% accuracy on test set, I don’t think we need to try to retrain the model with additional algorithms. At this point we will move straight to predicting the results on the 20 observation data set from our original input using the Random Forest model we created above.</p>
+<div id="accuracy-and-out-of-sample-error" class="section level2">
+<h2>Accuracy and Out of Sample Error</h2>
+<p>because the Random Forest produced a result with 99.7% accuracy on test set (0.3% Out of Sample Error), I don’t think we need to try to retrain the model with additional algorithms. At this point we will move straight to predicting the results on the 20 observation data set from our original input using the Random Forest model we created above.</p>
 <pre class="r"><code>predTestRF &lt;- predict(modFitRF, newdata = testing)
 
 predTestRF</code></pre>
