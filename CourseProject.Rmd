@@ -1,0 +1,112 @@
+---
+title: "Practical Machine Learning - Course Project"
+author: "Andy Pulaski"
+date: "August 7, 2016"
+output: html_document
+---
+
+## Project Background
+
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: http://groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset).
+input data
+
+## Project Goal
+The goal of this project is to predict the manner in which they did the exercise. This is the "classe" variable in the training set. You may use any of the other variables to predict with. You should create a report describing how you built your model, how you used cross validation, what you think the expected out of sample error is, and why you made the choices you did. You will also use your prediction model to predict 20 different test cases.
+
+## Input Data
+```{r}
+training <- read.csv('https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv')
+
+testing <- read.csv('https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv')
+
+```
+
+### Prep environment
+```{r}
+set.seed(94954)
+library(caret)
+library(rpart)
+library(rattle)
+
+```
+
+### Data Preparation
+Partition the training set into training and validation sets
+```{r}
+inTrain <- createDataPartition(y=training$classe, p=0.6, list=FALSE)
+ptrain <- training[inTrain,]
+ptest <- training[-inTrain,]
+
+```
+
+Now remove variables with nearly zero variance and predominately missing values in the training set
+```{r}
+# show original size of training set
+dim(ptrain)
+
+nzv <- nearZeroVar(ptrain)
+ptrain <- ptrain[, -nzv]
+ptest <- ptest[, -nzv]
+
+# remove vars with > 80% NA values
+highNA <- sapply(ptrain, function(x) mean(is.na(x))) > .80
+ptrain <- ptrain[,highNA==F]
+ptest <- ptest[,highNA==F]
+
+# remove the first five columns which are not useful predictive variables (name & timestamps)
+ptrain <- ptrain[,-(1:5)]
+ptest <- ptest[,-(1:5)]
+
+#show the new size of the training set after removing variables
+dim(ptrain)
+```
+
+## Modeling
+
+Use the following modeling functions:
+
+ 1. Model with a decision tree (RPART)
+ 2. Model with random forest (RF)
+ 3. Model with gradient boosting tree (GBM)
+ 
+```{r fitmodel, cache=TRUE, results="hide"}
+
+modFitTree <- train(classe~., data=ptrain, method='rpart')
+modFitRF <- train(classe~., data=ptrain, method='rf')
+modFitGBM <- train(classe~., data=ptrain, method='gbm')
+
+
+```
+
+##Model Evaluation
+Now predict each model on the validation set to allow us to re-train the models if necessary before the final test on the test set.
+```{r}
+predTree <- predict(modFitTree, newdata = ptest)
+predRF <- predict(modFitRF, newdata = ptest)
+predGBM <- predict(modFitGBM, newdata = ptest)
+
+```
+
+### results for decision tree
+```{r}
+confusionMatrix(ptest$classe, predTree)
+```
+
+### results for random forest
+```{r}
+confusionMatrix(ptest$classe, predRF)
+```
+
+### results for GBM
+```{r}
+confusionMatrix(ptest$classe, predGBM)
+```
+
+## Re-train Model
+because the Random Forest produced a result with 99.7% accuracy on test set, I don't think we need to try to retrain the model with additional algorithms. At this point we will move straight to predicting the results on the 20 observation data set from our original input using the Random Forest model we created above.
+```{r}
+predTestRF <- predict(modFitRF, newdata = testing)
+
+predTestRF
+```
+
